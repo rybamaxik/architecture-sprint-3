@@ -1,0 +1,20 @@
+@startuml
+title Диаграмма компонентов сервиса управления устройствами отопления
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
+  Container(HeatingService, "Микросервис управления устройствами отопления", "Java, Spring Boot", "Обеспечивает управление устройств отопления и получение показателей температуры от их датчиков")
+  ContainerDb(HeatingDB, "База данных сервиса устройств отопления", "PostgreSQL", "Хранит данные о запросах на управление, текущем состоянии и показаниях датчиков температуры")
+}
+
+Container(HeatingService, "Микросервис управления устройствами отопления", "Java, Spring Boot", "Обеспечивает управление устройств отопления и получение показателей температуры от их датчиков") {
+  Component(ServiceLayer, "Service Layer", "Business logic")
+  Component(RepositoryLayer, "Repository Layer", "Data access logic")
+}
+
+Rel(ServiceLayer,RepositoryLayer,"Reads/Writes data")
+Rel(RepositoryLayer,HeatingDB,"Reads/Writes user data")
+@enduml
