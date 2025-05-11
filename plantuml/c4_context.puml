@@ -1,0 +1,59 @@
+@startuml
+title Диаграмма контекста C4 перспективной модульной системы "Тёплый дом"
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Клиент", "Клиент системы умного дома")
+Person(supporter, "Специалист техподдержки", "Специалист техподдержки - решает проблемы клиентов")
+System(WarmhouseSystem, "Система 'Тёплый дом'", "Система управления умным домом")
+
+System_Ext(SmartHomeGate, "Шлюз умного дома", "Шлюз умного дома ставится в единственном экземпляре в каждом доме и управляет всеми устройствами и датчиками", "Шлюз поддерживает связь с системой 'Теплый дом' по стандартным протоколам")
+System_Ext(HeatingDevice, "Устройство отопления", "Устройство отопления имеет нагревательные элементы и датчики темперутары", "Использует стандартные протоколы для связи со шлюзом")
+System_Ext(DoorControlDevice, "Устройство управления воротами", "Позволяет отпирать и запирать ворота", "Работает со шлюзом по стандартным протоколам")
+System_Ext(VideoSurveillanceDevice, "Видеокамера", "Позволяет осуществлять видеонаблюдение", "Работает со шлюзом по стандартным протоколам, позволяет трансляцию изображения в реальном времени")
+System_Ext(LightningDevice, "Освещение", "Позволяет включить и выключить осветительный прибор, настроить его яркость", "Работает со шлюзом по стандартным протоколам")
+
+Rel(user, WarmhouseSystem, "Регистрирует дом и устройства в системе 'Тёплый дом'")
+Rel(user, WarmhouseSystem, "Управляет устройствами умного дома")
+Rel(user, WarmhouseSystem, "Мониторит состояние устройств умного дома")
+Rel(user, WarmhouseSystem, "Настраивает автоматизацию и сценарии управления устройств умного дома")
+
+Rel(supporter, WarmhouseSystem, "Управляет регистрациями клиентов, домов и устройств в системе 'Тёплый дом'")
+Rel(supporter, WarmhouseSystem, "Мониторит состояние устройств умного дома")
+Rel(supporter, WarmhouseSystem, "Настраивает и редактирует автоматизацию и сценарии управления устройств умного дома")
+Rel(supporter, WarmhouseSystem, "Просматривает телеметрию, журналы")
+
+Rel(WarmhouseSystem, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
+
+Rel(SmartHomeGate, WarmhouseSystem, "Присылает запрос на регистрацию себя и подключенных устройств")
+Rel(SmartHomeGate, WarmhouseSystem, "Присылает состояние устройств и показания датчиков")
+Rel(SmartHomeGate, WarmhouseSystem, "Присылает телеметрию и служебную информацию")
+
+Rel(WarmhouseSystem, SmartHomeGate, "Запрашивает состояние устройств и показания датчиков")
+Rel(WarmhouseSystem, SmartHomeGate, "Дает команды на управление устройствами")
+
+Rel(SmartHomeGate, HeatingDevice, "Команда на включение/выключение")
+Rel(SmartHomeGate, HeatingDevice, "Команда на установку температуры")
+Rel(HeatingDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(HeatingDevice, SmartHomeGate, "Показания датчиков температуры")
+Rel(HeatingDevice, SmartHomeGate, "Телеметрия")
+
+Rel(SmartHomeGate, DoorControlDevice, "Команда на отпирание/запирание")
+Rel(DoorControlDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(DoorControlDevice, SmartHomeGate, "Телеметрия")
+
+Rel(SmartHomeGate, VideoSurveillanceDevice, "Команды на включение/выключение")
+Rel(SmartHomeGate, VideoSurveillanceDevice, "Установка параметров съемки видео")
+Rel(SmartHomeGate, VideoSurveillanceDevice, "Установка адреса для передачи трансляции видео")
+Rel(VideoSurveillanceDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(VideoSurveillanceDevice, SmartHomeGate, "Телеметрия")
+
+Rel(SmartHomeGate, LightningDevice, "Команда на включение/выключение")
+Rel(SmartHomeGate, LightningDevice, "Команда на установку уровня яркости")
+Rel(LightningDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(LightningDevice, SmartHomeGate, "Уровень освещенности")
+Rel(LightningDevice, SmartHomeGate, "Телеметрия")
+
+@enduml

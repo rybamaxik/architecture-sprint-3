@@ -1,0 +1,136 @@
+@startuml
+title Диаграмма контейнеров C4 системы 'Тёплый дом'
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Клиент", "Клиент системы умного дома")
+Person(supporter, "Специалист техподдержки", "Специалист техподдержки - решает проблемы клиентов")
+System(WarmhouseSystem, "Система 'Тёплый дом'", "Система управления умным домом")
+
+Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
+  Container(HostFront, "Главный фронтэнд", "JS, React", "Объединяет микрофронты, обеспечивает маршрутизацию")
+  Container(HomeAndDevicesMicroFront, "Микрофронт домов и устройств", "JS, React", "Регистрация домов (шлюзов) и добавление устройств")
+  Container(HeatingMicroFront, "Микрофронт управления устройствами отопления", "JS, React", "Управление устройствами отопления")
+  Container(DoorControlMicroFront, "Микрофронт управления дверьми и воротами", "JS, React", "Управление (отпирание, запирание) дверей, ворот, замков")
+  Container(VideoSurveillanceMicroFront, "Микрофронт управления видеонаблюдением", "JS, React", "Управление настройками видеокамер, просмотр трансляции видео от них")
+  Container(LightningMicroFront, "Микрофронт управления освещением", "JS, React", "Управление осветительными устройствами")
+  Container(AdminSupportMicroFront, "Микрофронт для специалистов техподдержки", "JS, React", "Управление домами (шлюзами), устройствами, просмотр событий, телеметрии")
+  Container(MonitoringMicroFront, "Микрофронт мониторинга показателей", "JS, React", "Просмотр текущего и прошлого состояний устройств, показателей датчиков")
+  Container(AutomationMicroFront, "Микрофронт настройки автоматизации и сценариев", "JS, React", "Управление автоматическими действиями в рамках определенных пользователем сценариев")
+  Container(AndroidMobileApp, "Мобильное приложение Android", "Kotlin, Android", "Мобильное приложение под Android")
+  Container(iOSMobileApp, "Мобильное приложение iOS", "Swift, iOS", "Мобильное приложение под iOS")
+
+  Container(APIGateway, "Шлюз API", "Kong", "Маршрутизация API на сервисы")
+
+  Container(HomeAndDevicesService, "Микросервис управления домом и подключения устройств к нему", "Java, Spring Boot", "Обеспечивает работу с сущностями дома (шлюза) и подключения к нему устройств")
+  Container(HeatingService, "Микросервис управления устройствами отопления", "Java, Spring Boot", "Обеспечивает управление устройств отопления и получение показателей температуры от их датчиков")
+  Container(DoorControlService, "Микросервис управления дверьми, воротами, замками", "Java, Spring Boot", "Обеспечивает управление дверьми, воротами, замками, получает показатели от их датчиков (открыто, закрыто)")
+  Container(VideoSurveillanceService, "Микросервис управления видеонаблюдением", "Java, Spring Boot", "Обеспечивает управление видеокамерами, настройку записи, разрешения, трансляции видеопотока и т.п.")
+  Container(LightningService, "Микросервис управления устройствами освещения", "Java, Spring Boot", "Обеспечивает управление лампочками, светильниками, фонарями, получает показатели от датчиков")
+  Container(MonitoringService, "Микросервис хранения состояния устройств и показателей датчиков", "Java, Spring Boot", "Обеспечивает хранение показателей датчиков, состояния устройств, телеметрии")
+  Container(AutomationService, "Микросервис управления автоматизацией и запуском сценариев", "Java, Spring Boot", "Обеспечивает автоматизацию управления устройствами умного дома - выдача уведомлений, запуск определенных действий при наступлении событий")
+  Container(AuthService, "Микросервис аутентификации и авторизации", "Java, Spring Boot", "Обеспечивает аутентификацию пользователей и проверку их прав доступа")
+}
+
+Rel(user, HostFront, "Регистрирует дом и устройства в системе 'Тёплый дом'")
+Rel(user, AndroidMobileApp, "Регистрирует дом и устройства в системе 'Тёплый дом'")
+Rel(user, iOSMobileApp, "Регистрирует дом и устройства в системе 'Тёплый дом'")
+
+Rel(user, HostFront, "Управляет устройствами умного дома")
+Rel(user, AndroidMobileApp, "Управляет устройствами умного дома")
+Rel(user, iOSMobileApp, "Управляет устройствами умного дома")
+
+Rel(user, HostFront, "Мониторит состояние устройств умного дома")
+Rel(user, AndroidMobileApp, "Мониторит состояние устройств умного дома")
+Rel(user, iOSMobileApp, "Мониторит состояние устройств умного дома")
+
+Rel(user, HostFront, "Настраивает автоматизацию и сценарии управления устройств умного дома")
+Rel(user, AndroidMobileApp, "Настраивает автоматизацию и сценарии управления устройств умного дома")
+Rel(user, iOSMobileApp, "Настраивает автоматизацию и сценарии управления устройств умного дома")
+
+Rel(supporter, HostFront, "Управляет регистрациями клиентов, домов и устройств в системе 'Тёплый дом'")
+Rel(supporter, HostFront, "Мониторит состояние устройств умного дома")
+Rel(supporter, HostFront, "Настраивает и редактирует автоматизацию и сценарии управления устройств умного дома")
+Rel(supporter, HostFront, "Просматривает телеметрию, журналы")
+
+Rel(HostFront, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
+Rel(AndroidMobileApp, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
+Rel(iOSMobileApp, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
+
+Rel(HostFront, HomeAndDevicesMicroFront, "Маршрутизация на микрофронт")
+Rel(HostFront, HeatingMicroFront, "Маршрутизация на микрофронт")
+Rel(HostFront, DoorControlMicroFront, "Маршрутизация на микрофронт")
+Rel(HostFront, VideoSurveillanceMicroFront, "Маршрутизация на микрофронт")
+Rel(HostFront, LightningMicroFront, "Маршрутизация на микрофронт")
+Rel(HostFront, AdminSupportMicroFront, "Маршрутизация на микрофронт")
+Rel(HostFront, MonitoringMicroFront, "Маршрутизация на микрофронт")
+Rel(HostFront, AutomationMicroFront, "Маршрутизация на микрофронт")
+
+Rel(HostFront, APIGateway, "Маршрутизация API")
+Rel(HomeAndDevicesMicroFront, APIGateway, "Маршрутизация API")
+Rel(HeatingMicroFront, APIGateway, "Маршрутизация API")
+Rel(DoorControlMicroFront, APIGateway, "Маршрутизация API")
+Rel(VideoSurveillanceMicroFront, APIGateway, "Маршрутизация API")
+Rel(LightningMicroFront, APIGateway, "Маршрутизация API")
+Rel(AdminSupportMicroFront, APIGateway, "Маршрутизация API")
+Rel(MonitoringMicroFront, APIGateway, "Маршрутизация API")
+Rel(AutomationMicroFront, APIGateway, "Маршрутизация API")
+Rel(AndroidMobileApp, APIGateway, "Маршрутизация API")
+Rel(iOSMobileApp, APIGateway, "Маршрутизация API")
+
+Rel(APIGateway, AuthService, "Маршрутизация API")
+Rel(APIGateway, HomeAndDevicesService, "Маршрутизация API")
+Rel(APIGateway, HeatingService, "Маршрутизация API")
+Rel(APIGateway, DoorControlService, "Маршрутизация API")
+Rel(APIGateway, VideoSurveillanceService, "Маршрутизация API")
+Rel(APIGateway, LightningService, "Маршрутизация API")
+Rel(APIGateway, MonitoringService, "Маршрутизация API")
+Rel(APIGateway, AutomationService, "Маршрутизация API")
+
+System_Ext(SmartHomeGate, "Шлюз умного дома", "Шлюз умного дома ставится в единственном экземпляре в каждом доме и управляет всеми устройствами и датчиками", "Шлюз поддерживает связь с системой 'Теплый дом' по стандартным протоколам")
+System_Ext(HeatingDevice, "Устройство отопления", "Устройство отопления имеет нагревательные элементы и датчики темперутары", "Использует стандартные протоколы для связи со шлюзом")
+System_Ext(DoorControlDevice, "Устройство управления воротами", "Позволяет отпирать и запирать ворота", "Работает со шлюзом по стандартным протоколам")
+System_Ext(VideoSurveillanceDevice, "Видеокамера", "Позволяет осуществлять видеонаблюдение", "Работает со шлюзом по стандартным протоколам, позволяет трансляцию изображения в реальном времени")
+System_Ext(LightningDevice, "Освещение", "Позволяет включить и выключить осветительный прибор, настроить его яркость", "Работает со шлюзом по стандартным протоколам")
+
+Rel(SmartHomeGate, HomeAndDevicesService, "Присылает запрос на регистрацию себя и подключенных через него устройств")
+Rel(SmartHomeGate, MonitoringService, "Присылает состояние устройств и показания датчиков")
+Rel(SmartHomeGate, MonitoringService, "Присылает телеметрию и служебную информацию")
+
+Rel(MonitoringService, SmartHomeGate, "Запрашивает состояние устройств и показания датчиков")
+Rel(HeatingService, SmartHomeGate, "Дает команды на управление устройствами")
+Rel(DoorControlService, SmartHomeGate, "Дает команды на управление устройствами")
+Rel(VideoSurveillanceService, SmartHomeGate, "Дает команды на управление устройствами")
+Rel(LightningService, SmartHomeGate, "Дает команды на управление устройствами")
+
+Rel(MonitoringService, AutomationService, "Передает показания датчиков и состояние устройств")
+Rel(AutomationService, HeatingService, "Автоматически выдает команды на управление согласно сценариям")
+Rel(AutomationService, DoorControlService, "Автоматически выдает команды на управление согласно сценариям")
+Rel(AutomationService, VideoSurveillanceService, "Автоматически выдает команды на управление согласно сценариям")
+Rel(AutomationService, LightningService, "Автоматически выдает команды на управление согласно сценариям")
+
+Rel(SmartHomeGate, HeatingDevice, "Команда на включение/выключение")
+Rel(SmartHomeGate, HeatingDevice, "Команда на установку температуры")
+Rel(HeatingDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(HeatingDevice, SmartHomeGate, "Показания датчиков температуры")
+Rel(HeatingDevice, SmartHomeGate, "Телеметрия")
+
+Rel(SmartHomeGate, DoorControlDevice, "Команда на отпирание/запирание")
+Rel(DoorControlDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(DoorControlDevice, SmartHomeGate, "Телеметрия")
+
+Rel(SmartHomeGate, VideoSurveillanceDevice, "Команды на включение/выключение")
+Rel(SmartHomeGate, VideoSurveillanceDevice, "Установка параметров съемки видео")
+Rel(SmartHomeGate, VideoSurveillanceDevice, "Установка адреса для передачи трансляции видео")
+Rel(VideoSurveillanceDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(VideoSurveillanceDevice, SmartHomeGate, "Телеметрия")
+Rel(VideoSurveillanceDevice, VideoSurveillanceService, "Поток видео")
+
+Rel(SmartHomeGate, LightningDevice, "Команда на включение/выключение")
+Rel(SmartHomeGate, LightningDevice, "Команда на установку уровня яркости")
+Rel(LightningDevice, SmartHomeGate, "Текущее состояние устройства")
+Rel(LightningDevice, SmartHomeGate, "Телеметрия")
+
+@enduml
