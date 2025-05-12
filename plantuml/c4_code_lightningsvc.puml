@@ -1,0 +1,146 @@
+@startuml
+title Диаграмма кода сервиса управления освещением LightningService
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+enum Color {
+    WHITE_COLD
+    WHITE_WARM
+    YELLOW
+    RED
+    BLUE
+    GREEN
+    MAGENTA
+}
+
+enum EventType {
+    POWER_ON
+    POWER_OFF
+    ADJUSTED_BRIGHTNESS
+    CHANGED_COLOR
+    ONLINE
+    OFFLINE
+}
+
+enum CommandType {
+    POWER_ON
+    POWER_OFF
+    GET_POWER_STATUS
+    ADJUST_BRIGHTNESS
+    GET_BRIGHTNESS
+    CHANGE_COLOR
+    GET_COLOR
+}
+
+class LightningServiceController {
+    -LightningService service
+
+    +void registerSmartHomeGate(UUID smartHomeGateUuid, String connectionString)
+    +void unregisterSmartHomeGate(UUID smartHomeGateUuid)
+    +void registerLightningDevice(UUID deviceUuid, String gateDeviceId)
+    +void unregisterLightningDevice(UUID deviceUuid)
+
+    +void powerOn(UUID deviceUuid)
+    +void powerOff(UUID deviceUuid)
+    +bool getPowerStatus(UUID deviceUuid)
+
+    +void setBrightness(UUID deviceUuid, String brightness)
+    +unsigned getBrightness(UUID deviceUuid)
+
+    +void setColor(UUID deviceUuid, String color)
+    +String getColor(UUID deviceUuid)
+
+    +bool isDeviceOnline(UUID deviceUuid)
+}
+
+interface ILightningDevice
+{
+    +bool isOnline()
+    +bool isPowerOn()
+    +void setPowerOn(bool powerOn)
+    +void setColor(Color color)
+    +Color getColor()
+    +void setBrightness(uint brightness)
+    +unsigned getBrightness()
+}
+
+class LightningDevice {
+    -UUID smartHomeGateUuid
+    -UUID deviceUuid
+}
+
+interface IDeviceEventListener
+{
+    +void notify(UUID smartHomeGateUuid, UUID deviceUuid, EventType eventType, String value, DateTime eventDateTime)
+}
+
+class LightningDeviceInterop {
+    -Map<UUID,LightningDevice> lightningDeviceMap
+
+    +bool connectSmartHomeGate(UUID smartHomeGateUuid, String connectionString)
+    +void disconnectSmartHomeGate(UUID smartHomeGateUuid)
+
+    +bool connectDevice(UUID smartHomeGateUuid, String gateDeviceId, UUID deviceUuid)
+    +void disconnectDevice(UUID deviceUuid)
+
+    +ILightningDevice findDeviceByUuid(UUID deviceUuid)
+
+    +bool addDeviceEventListener(UUID deviceUuid, IDeviceEventListener listener)
+    +void removeDeviceEventListener(UUID deviceUuid, IDeviceEventListener listener)
+}
+
+class LightningService {
+    -LightningDeviceInterop deviceInterop
+    -LightningRepository repository
+    -EventQueueTopic lightningEvents
+    -CommandQueueTopic lightningCommands
+
+    +void registerSmartHomeGate(UUID smartHomeGateUuid, String connectionString)
+    +void unregisterSmartHomeGate(UUID smartHomeGateUuid)
+    +void registerLightningDevice(UUID deviceUuid, String gateDeviceId)
+    +void unregisterLightningDevice(UUID deviceUuid)
+
+    +void powerOn(UUID deviceUuid)
+    +void powerOff(UUID deviceUuid)
+    +bool getPowerStatus(UUID deviceUuid)
+
+    +void setBrightness(UUID deviceUuid, String brightness)
+    +unsigned getBrightness(UUID deviceUuid)
+
+    +void setColor(UUID deviceUuid, String color)
+    +String getColor(UUID deviceUuid)
+
+    +bool isDeviceOnline(UUID deviceUuid)
+
+    ~void notify(UUID smartHomeGateUuid, UUID deviceUuid, EventType eventType, String value, DateTime eventDateTime)
+    ~void pushDeviceEventToQueue(UUID smartHomeGateUuid, UUID deviceUuid, EventType eventType, String value, DateTime dateTime)
+    ~void pushCommandToQueue(UUID smartHomeGateUuid, UUID deviceUuid, CommandType commandType, String value)
+}
+
+class LightningRepository
+{
+    +void registerSmartHomeGate(UUID smartHomeGateUuid, String connectionString)
+    +void unregisterSmartHomeGate(UUID smartHomeGateUuid)
+    +Tuple<UUID,String> findSmartHomeGateByUuid(UUID smartHomeGateUuid)
+
+    +void registerDevice(UUID smartHomeGateUuid, UUID deviceUuid, String gateDeviceId)
+    +void unregisterDevice(UUID smartHomeGateUuid, UUID deviceUuid)
+    +Tuple<UUID,UUID,String> findDeviceByUuid(UUID deviceUuid)
+    
+    +List<UUID> getAllSmartHomeGates()
+    +List<UUID> getAllDevices(UUID smartHomeGateUuid)
+}
+
+LightningServiceController "1" -- "1" LightningService : contains
+LightningService "1" -- "1" LightningDeviceInterop : contains
+LightningService "1" -- "1" LightningRepository : contains
+LightningService "1" -- "1" EventQueueTopic : references
+LightningService "1" -- "1" CommandQueueTopic : references
+LightningService "1" -- "1" IDeviceEventListener : implements
+LightningDeviceInterop "1" -- "0...*" LightningDevice : contains
+LightningDeviceInterop "1" -- "0...*" ILightningDevice : provides
+LightningDevice "1" -- "1" ILightningDevice : implements
+
+@enduml

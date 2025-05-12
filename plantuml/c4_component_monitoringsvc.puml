@@ -1,0 +1,49 @@
+@startuml
+title Диаграмма компонентов сервиса мониторинга и хранения истории состояний устройств, показателей датчиков, команд на управление
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
+  Container(MonitoringService, "Микросервис мониторинга и хранения истории состояний и показателей", "Java, Spring Boot", "Обеспечивает мониторинг и хранение истории состояний устройств, показателей датчиков, команд на управление")
+  Container(HeatingService, "Микросервис управления устройствами отопления", "Java, Spring Boot", "Обеспечивает управление устройств отопления и получение показателей температуры от их датчиков")
+  Container(DoorControlService, "Микросервис управления дверьми, замками, воротами", "Java, Spring Boot", "Обеспечивает управление дверьми, замками, воротами и получение состояния (заперто, отперто)")
+  Container(VideoSurveillanceService, "Микросервис управления устройствами видеонаблюдения", "Java, Spring Boot", "Обеспечивает управление устройствами видеонаблюдения и получение телеметрии и видеопотока от них")
+  Container(LightningService, "Микросервис управления устройствами освещения", "Java, Spring Boot", "Обеспечивает управление устройствами освещения и получение показателей освещенности от их датчиков")
+  Container(APIGateway, "Шлюз API", "Kong", "Маршрутизация API на сервисы")
+}
+
+Container(MonitoringService, "Микросервис мониторинга и хранения истории состояний и показателей", "Java, Spring Boot", "Обеспечивает мониторинг и хранение истории состояний устройств, показателей датчиков, команд на управление") {
+  ComponentQueue(HeatingQueue, "Очередь с топиками для устройств отопления", "Kafka", "Сюда помещаются данные о состоянии устройств отопления, показатели датчиков температуры и телеметрия")
+  ComponentQueue(DoorControlQueue, "Очередь с топиками для дверей, замков, ворот", "Kafka", "Сюда помещаются данные о состоянии дверей, замков, ворот, показатели датчиков открытия/закрытия и телеметрия")
+  ComponentQueue(LightningQueue, "Очередь с топиками для устройств освещения", "Kafka", "Сюда помещаются данные о состоянии устройств освещения, показатели датчиков освещенности и телеметрия")
+  ComponentQueue(VideoSurveillanceQueue, "Очередь с топиками для устройств видеонаблюдения", "Kafka", "Сюда помещаются данные о состоянии устройств видеонаблюдения, телеметрия")
+
+  Component(ServiceLayer, "Бизнес-логика сервиса", "Бизнес-логика сохранения событий из очередей в БД и выдача исторических данных по запросу")
+  Component(RepositoryLayer, "Репозиторий хранения данных", "Логика работы с БД")
+
+  ComponentDb(MonitoringDB, "База данных сервиса мониторинга", "ClickHouse", "Time series СУБД - хранит исторические данные о командах на управление, показатели датчиков, подписки на уведомления")
+}
+
+Rel(HeatingService, HeatingQueue, "Команды на управление, показатели датчиков")
+Rel(DoorControlService, DoorControlQueue, "Команды на управление, показатели датчиков")
+Rel(VideoSurveillanceService, VideoSurveillanceQueue, "Команды на управление, показатели датчиков")
+Rel(LightningService, LightningQueue, "Команды на управление, показатели датчиков")
+
+Rel(HeatingQueue, ServiceLayer, "Поток событий")
+Rel(DoorControlQueue, ServiceLayer, "Поток событий")
+Rel(VideoSurveillanceQueue, ServiceLayer, "Поток событий")
+Rel(LightningQueue, ServiceLayer, "Поток событий")
+
+Rel(ServiceLayer, RepositoryLayer, "Сохранение событий, запросы на исторические данные, подписки на уведомления")
+Rel(RepositoryLayer, ServiceLayer, "Срезы исторических данных, уведомления")
+
+Rel(RepositoryLayer, MonitoringDB, "События для сохранения в БД, подписки на уведомления")
+Rel(MonitoringDB, RepositoryLayer, "Срезы исторических данных, подписки на уведомления")
+
+Rel(APIGateway, ServiceLayer, "Запросы на срезы исторических данных и на уведомления")
+Rel(ServiceLayer, APIGateway, "Срезы исторических данных")
+Rel(ServiceLayer, APIGateway, "Уведомления")
+
+@enduml

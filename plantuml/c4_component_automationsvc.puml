@@ -1,0 +1,57 @@
+@startuml
+title Диаграмма компонентов сервиса управления автоматизацией и запуском сценариев
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
+  Container(AutomationService, "Микросервис управления автоматизацией и запуском сценариев", "Java, Spring Boot", "Обеспечивает запуск определенных пользователем сценариев и действий в ответ на наступление событий")
+  Container(APIGateway, "Шлюз API", "Kong", "Маршрутизация API на сервисы")
+
+  Container_Boundary(MonitoringService, "Микросервис мониторинга и хранения истории состояний устройств, показателей датчиков, команд на управление") {
+    ComponentQueue(HeatingQueue, "Очередь с топиками для устройств отопления", "Kafka", "Сюда помещаются данные о состоянии устройств отопления, показатели датчиков температуры и телеметрия")
+    ComponentQueue(DoorControlQueue, "Очередь с топиками для дверей, замков, ворот", "Kafka", "Сюда помещаются данные о состоянии дверей, замков, ворот, показатели датчиков открытия/закрытия и телеметрия")
+    ComponentQueue(LightningQueue, "Очередь с топиками для устройств освещения", "Kafka", "Сюда помещаются данные о состоянии устройств освещения, показатели датчиков освещенности и телеметрия")
+    ComponentQueue(VideoSurveillanceQueue, "Очередь с топиками для устройств видеонаблюдения", "Kafka", "Сюда помещаются данные о состоянии устройств видеонаблюдения, телеметрия")
+  }
+  Container(HeatingService, "Микросервис управления устройствами отопления", "Java, Spring Boot", "Обеспечивает управление устройств отопления и получение показателей температуры от их датчиков")
+  Container(DoorControlService, "Микросервис управления дверьми, замками, воротами", "Java, Spring Boot", "Обеспечивает управление дверьми, замками, воротами и получение состояния (заперто, отперто)")
+  Container(VideoSurveillanceService, "Микросервис управления устройствами видеонаблюдения", "Java, Spring Boot", "Обеспечивает управление устройствами видеонаблюдения и получение телеметрии и видеопотока от них")
+  Container(LightningService, "Микросервис управления устройствами освещения", "Java, Spring Boot", "Обеспечивает управление устройствами освещения и получение показателей освещенности от их датчиков")
+}
+
+Container(AutomationService, "Микросервис управления автоматизацией и запуском сценариев", "Java, Spring Boot", "Обеспечивает запуск определенных пользователем сценариев и действий в ответ на наступление событий") {
+  Component(TriggerLayer, "Логика триггеров", "Проверка условий срабатывания триггеров в зависимости от наступления событий")
+  Component(ActionLayer, "Логика действий", "Запуск определенных действий в виде команд на управление устройствами или выдача уведомлений")
+
+  Component(ServiceLayer, "Бизнес-логика сервиса", "Бизнес-логика работы c событиями, триггерами, действиями")
+  Component(RepositoryLayer, "Репозиторий хранения данных", "Логика работы с БД")
+  ComponentDb(AutomationDB, "База данных сервиса автоматизации", "PostgreSQL", "Хранит данные об условиях (триггерах) и действиях")
+}
+
+Rel(ServiceLayer, RepositoryLayer, "Добавление/удаление нового триггера или действия")
+Rel(ServiceLayer, RepositoryLayer, "Запрос на просмотр триггеров и действий")
+
+Rel(RepositoryLayer, ServiceLayer, "Данные о триггерах и действиях")
+Rel(RepositoryLayer, AutomationDB, "Обмен данными с СУБД")
+
+Rel(HeatingQueue, TriggerLayer, "Поток событий")
+Rel(DoorControlQueue, TriggerLayer, "Поток событий")
+Rel(VideoSurveillanceQueue, TriggerLayer, "Поток событий")
+Rel(LightningQueue, TriggerLayer, "Поток событий")
+
+Rel(ServiceLayer, TriggerLayer, "Создание триггеров на основе сохраненных в БД")
+Rel(TriggerLayer, ServiceLayer, "Факты наступления событий - триггеров действий")
+Rel(ServiceLayer, ActionLayer, "Создание действий на основе сохраненных в БД")
+Rel(ServiceLayer, ActionLayer, "Активация действий - команд на управление устройствами")
+
+Rel(ActionLayer, APIGateway, "Действия - команды в сервисы управления устройствами")
+Rel(ActionLayer, APIGateway, "Действия - уведомления пользователей")
+
+Rel(APIGateway, HeatingService, "Команды на управление как действия")
+Rel(APIGateway, DoorControlService, "Команды на управление как действия")
+Rel(APIGateway, VideoSurveillanceService, "Команды на управление как действия")
+Rel(APIGateway, LightningService, "Команды на управление как действия")
+
+@enduml

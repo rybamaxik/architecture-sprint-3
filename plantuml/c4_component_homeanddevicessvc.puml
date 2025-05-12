@@ -1,0 +1,39 @@
+@startuml
+title Диаграмма компонентов сервиса управления домом и подключения устройств к нему
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
+  Container(HomeAndDevicesService, "Микросервис управления домом и подключения устройств к нему", "Java, Spring Boot", "Обеспечивает регистрацию домов (шлюзов) и добавление устройств к нему")
+  Container(APIGateway, "Шлюз API", "Kong", "Маршрутизация API на сервисы")
+  Container_Ext(SmartHomeGate, "Шлюз умного дома", "Управляет и обеспечивает обмен данными со всеми умными устройствами этого дома")
+}
+
+Container(HomeAndDevicesService, "Микросервис управления домом и подключения устройств к нему", "Java, Spring Boot", "Обеспечивает регистрацию домов (шлюзов) и добавление устройств к нему") {
+  Component(ServiceLayer, "Бизнес-логика сервиса", "Бизнес-логика работы со шлюзами и подключением устройств")
+  Component(RepositoryLayer, "Репозиторий хранения данных", "Логика работы с БД")
+  Component(DeviceInteropLayer, "Работа со шлюзами и устройствами", "Поддержка операций регистрации шлюзов и подключения устройств, работа с сетевыми протоколами")
+  ComponentDb(HomeAndDevicesDB, "База данных сервиса управления домами и подключением устройств", "PostgreSQL", "Хранит данные о домах (шлюзах) и связанных с ними устройствах")
+}
+
+Rel(APIGateway, ServiceLayer, "Запросы просмотра шлюзов, их параметров и зарегистрированных устройств")
+Rel(APIGateway, ServiceLayer, "Подтверждение регистрации/удаление шлюза")
+Rel(APIGateway, ServiceLayer, "Запрос подключения нового устройства к шлюзу или удаления устройства")
+
+Rel(ServiceLayer, APIGateway, "Результат операций на регистрацию/добавление/удаление, список шлюзов и устройств")
+
+Rel(ServiceLayer, RepositoryLayer, "Добавление нового шлюза/удаление")
+Rel(ServiceLayer, RepositoryLayer, "Добавление нового устройства/удаление")
+
+Rel(RepositoryLayer, ServiceLayer, "Данные о шлюзах и устройствах")
+Rel(RepositoryLayer, HomeAndDevicesDB, "Обмен данными с СУБД")
+
+Rel(ServiceLayer, DeviceInteropLayer, "Запросы к шлюзам на добавление/удаление устройств")
+Rel(DeviceInteropLayer, ServiceLayer, "Запрос шлюза на регистрацию/удаление из БД")
+
+Rel(DeviceInteropLayer, SmartHomeGate, "Запросы к шлюзам на добавление/удаление устройств")
+Rel(SmartHomeGate, DeviceInteropLayer, "Запрос шлюза на регистрацию/удаление из БД")
+
+@enduml
