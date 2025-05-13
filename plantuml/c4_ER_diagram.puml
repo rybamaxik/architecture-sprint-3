@@ -9,17 +9,32 @@ entity "Клиент" as user {
     *support_staff : bool
 }
 
+entity "Группа клиентов" as user_group {
+    *id : number <<generated>>
+    *creator_user_id : number <<FK>>
+    --
+    *name : text
+}
+
+entity "Участник группы" as group_participant {
+    *id : number <<generated>>
+    *user_group_id : number <<FK>>
+    *user_id : number <<FK>>
+    *has_admin_rights : bool
+}
+
 entity "Дом" as home {
     *id : number <<generated>>
-    *user_id : number <<FK>>
     --
+    *creator_user_id : number <<FK>>
+    *user_group_id : number <<FK>>
     *address : text
 }
 
 entity "Умный шлюз" as smarthomegate {
     *id : uuid <<generated>>
     *home_id : id <<FK>>
-    *user_id : number <<FK>>
+    *user_group_id : number <<FK>>
     --
     *name : text
     *state : enum('registered', 'online', 'offline', 'failed', 'blocked')
@@ -130,8 +145,15 @@ entity "Команда от действия" as action_command {
 }
 
 home ||--o{ user : "принадлежит"
-smarthomegate }--|| home : "находится в "
-smarthomegate }--|| user : "принадлежит"
+home }--|| user_group : "имеет группу жильцов"
+
+user_group }--|| user : "создана клиентом"
+
+smarthomegate }--|| home : "находится в доме"
+smarthomegate }--|| user_group : "используется группой жильцов"
+
+group_participant }--|| user : "является клиентом"
+group_participant }--|| user_group : "участвует в группе жильцов"
 
 device }--|| home : "расположено в"
 device }--|| device_type : "имеет тип"

@@ -10,7 +10,8 @@ Person(supporter, "Специалист техподдержки", "Специа
 System(WarmhouseSystem, "Система 'Тёплый дом'", "Система управления умным домом")
 
 Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
-  Container(HostFront, "Главный фронтэнд", "JS, React", "Объединяет микрофронты, обеспечивает маршрутизацию")
+  Container(HostFront, "Главный фронтэнд", "JS, React", "Объединяет микрофронты")
+  Container(AuthRegMicroFront, "Микрофронт регистрации и аутентификации", "JS, React", "Регистрация и аутентификация (логин) клиентов и специалистов техподдержки")
   Container(HomeAndDevicesMicroFront, "Микрофронт домов и устройств", "JS, React", "Регистрация домов (шлюзов) и добавление устройств")
   Container(HeatingMicroFront, "Микрофронт управления устройствами отопления", "JS, React", "Управление устройствами отопления")
   Container(DoorControlMicroFront, "Микрофронт управления дверьми и воротами", "JS, React", "Управление (отпирание, запирание) дверей, ворот, замков")
@@ -22,7 +23,8 @@ Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
   Container(AndroidMobileApp, "Мобильное приложение Android", "Kotlin, Android", "Мобильное приложение под Android")
   Container(iOSMobileApp, "Мобильное приложение iOS", "Swift, iOS", "Мобильное приложение под iOS")
 
-  Container(APIGateway, "Шлюз API", "Kong", "Маршрутизация API на сервисы")
+  Container(ReverseProxy, "Обратный прокси", "NGINX", "Маршрутизация HTTP-запросов на главный фронт и микрофронты")
+  Container(APIGateway, "Шлюз API", "Kong", "Маршрутизация API на микросервисы")
 
   Container(HomeAndDevicesService, "Микросервис управления домом и подключения устройств к нему", "Java, Spring Boot", "Обеспечивает работу с сущностями дома (шлюза) и подключения к нему устройств")
   Container(HeatingService, "Микросервис управления устройствами отопления", "Java, Spring Boot", "Обеспечивает управление устройств отопления и получение показателей температуры от их датчиков")
@@ -34,41 +36,44 @@ Container_Boundary(WarmhouseSystem, "Система 'Тёплый дом'") {
   Container(AuthService, "Микросервис аутентификации и авторизации", "Java, Spring Boot", "Обеспечивает аутентификацию пользователей и проверку их прав доступа")
 }
 
-Rel(user, HostFront, "Регистрирует дом и устройства в системе 'Тёплый дом'")
+Rel(user, ReverseProxy, "Регистрирует дом и устройства в системе 'Тёплый дом'")
 Rel(user, AndroidMobileApp, "Регистрирует дом и устройства в системе 'Тёплый дом'")
 Rel(user, iOSMobileApp, "Регистрирует дом и устройства в системе 'Тёплый дом'")
 
-Rel(user, HostFront, "Управляет устройствами умного дома")
+Rel(user, ReverseProxy, "Управляет устройствами умного дома")
 Rel(user, AndroidMobileApp, "Управляет устройствами умного дома")
 Rel(user, iOSMobileApp, "Управляет устройствами умного дома")
 
-Rel(user, HostFront, "Мониторит состояние устройств умного дома")
+Rel(user, ReverseProxy, "Мониторит состояние устройств умного дома")
 Rel(user, AndroidMobileApp, "Мониторит состояние устройств умного дома")
 Rel(user, iOSMobileApp, "Мониторит состояние устройств умного дома")
 
-Rel(user, HostFront, "Настраивает автоматизацию и сценарии управления устройств умного дома")
+Rel(user, ReverseProxy, "Настраивает автоматизацию и сценарии управления устройств умного дома")
 Rel(user, AndroidMobileApp, "Настраивает автоматизацию и сценарии управления устройств умного дома")
 Rel(user, iOSMobileApp, "Настраивает автоматизацию и сценарии управления устройств умного дома")
 
-Rel(supporter, HostFront, "Управляет регистрациями клиентов, домов и устройств в системе 'Тёплый дом'")
-Rel(supporter, HostFront, "Мониторит состояние устройств умного дома")
-Rel(supporter, HostFront, "Настраивает и редактирует автоматизацию и сценарии управления устройств умного дома")
-Rel(supporter, HostFront, "Просматривает телеметрию, журналы")
+Rel(supporter, ReverseProxy, "Управляет регистрациями клиентов, домов и устройств в системе 'Тёплый дом'")
+Rel(supporter, ReverseProxy, "Мониторит состояние устройств умного дома")
+Rel(supporter, ReverseProxy, "Настраивает и редактирует автоматизацию и сценарии управления устройств умного дома")
+Rel(supporter, ReverseProxy, "Просматривает телеметрию, журналы")
 
-Rel(HostFront, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
+Rel(ReverseProxy, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
 Rel(AndroidMobileApp, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
 Rel(iOSMobileApp, user, "Присылает уведомления о событиях и действиях в рамках автоматического сценария")
 
-Rel(HostFront, HomeAndDevicesMicroFront, "Маршрутизация на микрофронт")
-Rel(HostFront, HeatingMicroFront, "Маршрутизация на микрофронт")
-Rel(HostFront, DoorControlMicroFront, "Маршрутизация на микрофронт")
-Rel(HostFront, VideoSurveillanceMicroFront, "Маршрутизация на микрофронт")
-Rel(HostFront, LightningMicroFront, "Маршрутизация на микрофронт")
-Rel(HostFront, AdminSupportMicroFront, "Маршрутизация на микрофронт")
-Rel(HostFront, MonitoringMicroFront, "Маршрутизация на микрофронт")
-Rel(HostFront, AutomationMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, HostFront, "Маршрутизация на главный фронт")
+Rel(ReverseProxy, AuthRegMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, HomeAndDevicesMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, HeatingMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, DoorControlMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, VideoSurveillanceMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, LightningMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, AdminSupportMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, MonitoringMicroFront, "Маршрутизация на микрофронт")
+Rel(ReverseProxy, AutomationMicroFront, "Маршрутизация на микрофронт")
 
 Rel(HostFront, APIGateway, "Маршрутизация API")
+Rel(AuthRegMicroFront, APIGateway, "Маршрутизация API")
 Rel(HomeAndDevicesMicroFront, APIGateway, "Маршрутизация API")
 Rel(HeatingMicroFront, APIGateway, "Маршрутизация API")
 Rel(DoorControlMicroFront, APIGateway, "Маршрутизация API")
