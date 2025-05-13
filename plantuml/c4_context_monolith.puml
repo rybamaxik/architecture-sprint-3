@@ -1,0 +1,28 @@
+@startuml
+title Диаграмма контекста C4 монолитной системы "Тёплый дом"
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Клиент", "Клиент системы умного дома")
+Person(supporter, "Специалист техподдержки", "Специалист технической поддержки - помогает клиенту решать проблемы")
+
+System(WarmhouseSystem, "Система 'Тёплый дом'", "Система управления умным домом")
+
+System_Ext(HeatingDevice, "Устройство отопления", "Устройство отопления имеет нагревательные элементы и датчики темперутары")
+
+Rel(user, WarmhouseSystem, "Управляет устройством отопления умного дома")
+Rel(user, WarmhouseSystem, "Запрашивает температуру и состояние устройства отопления")
+
+Rel(supporter, WarmhouseSystem, "Регистрирует устройство отопления")
+Rel(supporter, WarmhouseSystem, "Выполняет техподдержку")
+
+Rel(WarmhouseSystem, user, "Присылает состояние устройства отопления и текущую температуру")
+
+Rel(WarmhouseSystem, HeatingDevice, "Отсылает команды на включение/отключение")
+Rel(WarmhouseSystem, HeatingDevice, "Отсылает команду на установку нужной температуры")
+Rel(HeatingDevice, WarmhouseSystem, "Присылает значение текущей температуры")
+Rel(HeatingDevice, WarmhouseSystem, "Присылает состояние устройства отопления")
+
+@enduml
